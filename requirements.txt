@@ -1,5 +1,5 @@
 requests
 bs4
 pandas
-requests_oauthlib
 lxml
+mastodon.py

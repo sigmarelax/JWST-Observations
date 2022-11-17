@@ -6,13 +6,14 @@ from datetime import timedelta
 import urllib
 import pandas as pd
 import time
-from requests_oauthlib import OAuth1
+from mastodon import Mastodon
+
+posted_text = ""
 
 class JWSTObservationBot():
     def __init__(self):
         self.observing_schedules_url = "https://www.stsci.edu/jwst/science-execution/observing-schedules"
         self.base_url = "https://www.stsci.edu"
-        self.tweet_url = "https://api.twitter.com/2/tweets"
 
         self.observing_schedule = None
         self.seen_observing_schedules = set()
@@ -26,18 +27,18 @@ class JWSTObservationBot():
                 self.seen_observing_schedules = set([schedule for schedule in file.readline().split(",")])
         self.update_observing_schedule()
 
-        self.sleep_duration = 5  # sleep time in seconds
+        self.sleep_duration = 20  # sleep time in seconds
 
         self.last_saved_time = 0
         self.save_frequency = 3600  # how often the bot should save the observing schedule to disk
 
-        self.init_environ()
-        api_key = os.getenv("API_KEY")
-        api_key_secret = os.getenv("API_KEY_SECRET")
-        access_token = os.getenv("ACCESS_TOKEN")
-        access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
-
-        self.oauth = OAuth1(api_key, api_key_secret, access_token, access_token_secret, signature_type="auth_header")
+        self.init_environ() # read file for api key
+        
+        # set up Mastodon api
+        self.mastodon = Mastodon(
+        access_token = os.getenv("ACCESS_TOKEN"),
+        api_base_url = 'https://botsin.space/'
+)
 
     def init_environ(self):
         if os.path.exists("../.env"):
@@ -160,16 +161,14 @@ class JWSTObservationBot():
         text = f"I am now observing {event['TARGET NAME']} using {event['SCIENCE INSTRUMENT AND MODE']} for {duration}. "
         text += f"Keywords: {event['KEYWORDS']}. "
         text += f"Proposal: {proposal_root + event.name.split(':')[0]}.pdf {':'.join(event.name.split(':')[1:])}"
-
-        print(f"Tweeting: {text}")
-        r = requests.post("https://api.twitter.com/2/tweets", auth=self.oauth, json={"text": text})
         
-        if not r.ok:
-            if r.status_code == 403 and "duplicate content" in r.json()["detail"]:
-                self.observing_schedule.at[event.name, "seen"] = True
-            print(f"Failed to send a tweet with text {text}. {r.content}")
+        global posted_text
+        if text != posted_text:
+            print(f"Posting: {text}")
+            self.mastodon.status_post(text, visibility='direct')
+            posted_text = text
         else:
-            self.observing_schedule.at[event.name, "seen"] = True
+            print("Repeat event detected. Not posting")
 
     def sleep(self):
         print("Sleeping for " + str(self.sleep_duration) + ". Began at " + str(datetime.utcnow()))

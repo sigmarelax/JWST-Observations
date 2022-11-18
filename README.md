@@ -2,8 +2,8 @@
 
 This is a tracking tool for the James Webb Space Telescope. Using [observation schedules published by the Space Telescope Science Institute](https://www.stsci.edu/jwst/science-execution/observing-schedules), it will query for new observation events and create mastodon posts when one is occurring.
 
-this is a port of the twitter bot below:
-https://github.com/lauzadis/JWST-Observations
+This project was ported from this twitter bot:  
+https://github.com/lauzadis/JWST-Observations  
 https://twitter.com/JWSTObservation
 
 ## Usage

@@ -165,7 +165,7 @@ class JWSTObservationBot():
         global posted_text
         if text != posted_text:
             print(f"Posting: {text}")
-            self.mastodon.status_post(text, visibility='direct')
+            self.mastodon.status_post(text)
             posted_text = text
         else:
             print("Repeat event detected. Not posting")

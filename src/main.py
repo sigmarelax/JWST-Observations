@@ -27,7 +27,7 @@ class JWSTObservationBot():
                 self.seen_observing_schedules = set([schedule for schedule in file.readline().split(",")])
         self.update_observing_schedule()
 
-        self.sleep_duration = 20  # sleep time in seconds
+        self.sleep_duration = 80  # sleep time in seconds
 
         self.last_saved_time = 0
         self.save_frequency = 3600  # how often the bot should save the observing schedule to disk

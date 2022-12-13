@@ -163,7 +163,7 @@ class JWSTObservationBot():
         text += f"Proposal: {proposal_root + event.name.split(':')[0]}.pdf {':'.join(event.name.split(':')[1:])}"
         
         global posted_text
-        if text != posted_text:
+        if text[:30] != posted_text[:30]:
             print(f"Posting: {text}")
             self.mastodon.status_post(text)
             posted_text = text

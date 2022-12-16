@@ -9,6 +9,7 @@ import time
 from mastodon import Mastodon
 
 posted_text = ""
+posted_text_old = ""
 
 class JWSTObservationBot():
     def __init__(self):
@@ -27,7 +28,7 @@ class JWSTObservationBot():
                 self.seen_observing_schedules = set([schedule for schedule in file.readline().split(",")])
         self.update_observing_schedule()
 
-        self.sleep_duration = 80  # sleep time in seconds
+        self.sleep_duration = 300  # sleep time in seconds
 
         self.last_saved_time = 0
         self.save_frequency = 3600  # how often the bot should save the observing schedule to disk
@@ -163,12 +164,18 @@ class JWSTObservationBot():
         text += f"Proposal: {proposal_root + event.name.split(':')[0]}.pdf {':'.join(event.name.split(':')[1:])}"
         
         global posted_text
+        global posted_text_old
+        
         if text[:30] != posted_text[:30]:
-            print(f"Posting: {text}")
-            self.mastodon.status_post(text)
-            posted_text = text
+            if text[:30] != posted_text_old[:30]:
+                print(f"Posting: {text}")
+                self.mastodon.status_post(text)
+                posted_text_old = posted_text
+                posted_text = text
+            else:
+                print("Repeat. Not posting")
         else:
-            print("Repeat event detected. Not posting")
+            print("Repeat. Not posting")
 
     def sleep(self):
         print("Sleeping for " + str(self.sleep_duration) + ". Began at " + str(datetime.utcnow()))
